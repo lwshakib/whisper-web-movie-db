@@ -1,7 +1,8 @@
-import axios from "axios";
-
 const MOVIE_DB_API_BASE_URL = "https://api.themoviedb.org/3";
 const MOVIE_DB_API_KEY = process.env.MOVIE_DB_API_KEY;
+
+// Revalidation time: 1 hour (3600 seconds)
+const REVALIDATE_TIME = 3600;
 
 // Movie Endpoints
 const trendingMoviesEndpoint = `${MOVIE_DB_API_BASE_URL}/trending/movie/day?api_key=${MOVIE_DB_API_KEY}`;
@@ -42,17 +43,27 @@ export const fallbackMoviePoster =
 export const fallbackPersonImage =
   "https://img.freepik.com/free-vector/isolated-young-handsome-man-different-poses-white-background-illustration_632498-855.jpg";
 
-const apiCall = async (endpoint: string, params?: object) => {
-  const options = {
-    method: "GET",
-    url: endpoint,
-    params: params ? params : {},
-  };
+/**
+ * Enhanced apiCall using Next.js fetch with revalidation
+ */
+const apiCall = async (endpoint: string, params?: Record<string, any>) => {
+  const url = new URL(endpoint);
+  if (params) {
+    Object.keys(params).forEach(key => url.searchParams.append(key, String(params[key])));
+  }
+
   try {
-    const response = await axios.request(options);
-    return response.data;
+    const response = await fetch(url.toString(), {
+      next: { revalidate: REVALIDATE_TIME }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
   } catch (error) {
-    console.log("error: ", error);
+    console.error("API Call Error:", error);
     return {};
   }
 };
