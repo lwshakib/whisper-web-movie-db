@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
@@ -8,9 +8,10 @@ import { EffectCoverflow, Autoplay } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
 import { imageOriginal, image500, fetchMovieVideos, fetchTVVideos } from '@/TMDB/config';
-import { Play, Info, Star } from 'lucide-react';
+import { Play, Info, Star, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TrailerModal from './TrailerModal';
+import { cn } from '@/lib/utils';
 
 interface Movie {
   id: number;
@@ -30,6 +31,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [currentVideoKey, setCurrentVideoKey] = useState<string | null>(null);
   const [loadingTrailer, setLoadingTrailer] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter valid movies
   const validMovies = movies.filter(movie => movie.poster_path && movie.backdrop_path).slice(0, 10);
@@ -38,25 +40,35 @@ export default function Hero({ movies }: { movies: Movie[] }) {
 
   const activeMovie = validMovies[activeIndex];
 
+  // Reset error when movie changes
+  useEffect(() => {
+    setError(null);
+  }, [activeIndex]);
+
   const handleWatchTrailer = async () => {
     setLoadingTrailer(true);
+    setError(null);
     try {
-      // Determine if it's a TV show or Movie based on presence of 'name' or media_type
-      const isTV = !!activeMovie.name;
+      // Prioritize media_type if available, then fallback to name check
+      const isTV = activeMovie.media_type === 'tv' || (activeMovie.media_type !== 'movie' && !!activeMovie.name);
+      
       const data = isTV 
         ? await fetchTVVideos(activeMovie.id)
         : await fetchMovieVideos(activeMovie.id);
       
-      const trailer = data.results?.find((v: any) => v.type === "Trailer" && v.site === "YouTube") || data.results?.[0];
+      const trailer = data.results?.find((v: any) => 
+        (v.type === "Trailer" || v.type === "Teaser") && v.site === "YouTube"
+      ) || data.results?.find((v: any) => v.site === "YouTube");
       
       if (trailer) {
         setCurrentVideoKey(trailer.key);
         setIsTrailerOpen(true);
       } else {
-        alert("Trailer not available for this title.");
+        setError("Trailer currently unavailable for this title.");
       }
-    } catch (error) {
-      console.error("Failed to fetch trailer:", error);
+    } catch (err) {
+      console.error("Failed to fetch trailer:", err);
+      setError("Unable to load trailer. Please try again later.");
     } finally {
       setLoadingTrailer(false);
     }
@@ -79,7 +91,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
             alt={activeMovie.title || activeMovie.name || "Backdrop"}
             fill
             priority
-            className="object-cover opacity-40 scale-105"
+            className="object-cover opacity-35 scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
@@ -99,7 +111,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
           >
             <div className="flex items-center gap-4">
               <span className="bg-primary px-3 py-1 rounded-md text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-lg shadow-primary/20">
-                Trending Now
+                {(activeMovie.media_type || (activeMovie.name ? "TV Show" : "Movie")).toUpperCase()}
               </span>
               <div className="flex items-center gap-1.5 text-yellow-500">
                 <Star className="w-4 h-4 fill-yellow-500" />
@@ -120,22 +132,39 @@ export default function Hero({ movies }: { movies: Movie[] }) {
               {activeMovie.overview}
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-4">
-              <button
-                onClick={handleWatchTrailer}
-                disabled={loadingTrailer}
-                className="group flex items-center gap-3 bg-white text-black px-10 py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all hover:bg-primary hover:text-white transform hover:scale-105 shadow-xl disabled:opacity-50"
-              >
-                <Play className={cn("w-5 h-5 fill-current", loadingTrailer && "animate-pulse")} />
-                {loadingTrailer ? "Loading..." : "Watch Trailer"}
-              </button>
-              <Link
-                href={activeMovie.name ? `/tv/${activeMovie.id}` : `/movie/${activeMovie.id}`}
-                className="flex items-center gap-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-105 border border-white/10"
-              >
-                <Info className="w-5 h-5" />
-                Details
-              </Link>
+            <div className="relative group/btns pt-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  onClick={handleWatchTrailer}
+                  disabled={loadingTrailer}
+                  className="group flex items-center gap-3 bg-white text-black px-10 py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all hover:bg-primary hover:text-white transform hover:scale-105 shadow-xl disabled:opacity-50"
+                >
+                  <Play className={cn("w-5 h-5 fill-current", loadingTrailer && "animate-spin")} />
+                  {loadingTrailer ? "Connecting..." : "Watch Trailer"}
+                </button>
+                <Link
+                  href={activeMovie.name ? `/tv/${activeMovie.id}` : `/movie/${activeMovie.id}`}
+                  className="flex items-center gap-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-105 border border-white/10"
+                >
+                  <Info className="w-5 h-5" />
+                  Details
+                </Link>
+              </div>
+
+              {/* Status Message (Error) */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="absolute top-full mt-4 left-0 flex items-center gap-2 px-6 py-3 bg-zinc-900/90 backdrop-blur-md rounded-2xl border border-red-500/20 shadow-2xl z-50 text-red-500 text-xs font-black uppercase tracking-widest"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>
@@ -210,8 +239,4 @@ export default function Hero({ movies }: { movies: Movie[] }) {
       />
     </section>
   );
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
 }
