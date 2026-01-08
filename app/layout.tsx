@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Explore the latest movies and TV series with a premium cinematic experience.",
 };
 
+import { Suspense } from "react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${sourceSans3.variable}`}>
       <body className="bg-black text-white antialiased">
-        <Navbar />
+        <Suspense fallback={<div className="h-20 bg-transparent" />}>
+          <Navbar />
+        </Suspense>
         <main>{children}</main>
       </body>
     </html>
