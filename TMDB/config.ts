@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const MOVIE_DB_API_BASE_URL = "https://api.themoviedb.org/3";
-const MOVIE_DB_API_KEY = process.env.NEXT_PUBLIC_MOVIE_DB_API_KEY || process.env.MOVIE_DB_API_KEY;
+const MOVIE_DB_API_KEY = process.env.MOVIE_DB_API_KEY;
 
 // Movie Endpoints
 const trendingMoviesEndpoint = `${MOVIE_DB_API_BASE_URL}/trending/movie/day?api_key=${MOVIE_DB_API_KEY}`;

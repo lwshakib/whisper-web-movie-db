@@ -7,7 +7,7 @@ import 'swiper/css/effect-coverflow';
 import { EffectCoverflow, Autoplay } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
-import { imageOriginal, image500, fetchMovieVideos, fetchTVVideos } from '@/TMDB/config';
+import { imageOriginal, image500 } from '@/TMDB/config';
 import { Play, Info, Star, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TrailerModal from './TrailerModal';
@@ -52,9 +52,8 @@ export default function Hero({ movies }: { movies: Movie[] }) {
       // Prioritize media_type if available, then fallback to name check
       const isTV = activeMovie.media_type === 'tv' || (activeMovie.media_type !== 'movie' && !!activeMovie.name);
       
-      const data = isTV 
-        ? await fetchTVVideos(activeMovie.id)
-        : await fetchMovieVideos(activeMovie.id);
+      const response = await fetch(`/api/videos?id=${activeMovie.id}&type=${isTV ? 'tv' : 'movie'}`);
+      const data = await response.json();
       
       const trailer = data.results?.find((v: any) => 
         (v.type === "Trailer" || v.type === "Teaser") && v.site === "YouTube"
