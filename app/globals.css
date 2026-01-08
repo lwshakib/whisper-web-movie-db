@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-outfit), var(--font-source-sans-3), ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #e50914;
+  --color-primary-hover: #b20710;
+  --color-surface: #0f0f0f;
+  --color-surface-hover: #1f1f1f;
+  --color-text-main: #ffffff;
+  --color-text-muted: #a3a3a3;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Custom Swiper Styles */
+.swiper {
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 300px;
+  height: 450px; /* Adjusted for movie poster aspect ratio */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.swiper-slide:hover {
+  transform: scale(1.05);
+}
+
+.swiper-slide-shadow-left,
+.swiper-slide-shadow-right {
+  border-radius: 20px;
+}
+
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.2) !important;
+  opacity: 1 !important;
+  width: 10px !important;
+  height: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--color-primary) !important;
+  width: 30px !important;
+  border-radius: 5px !important;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Gradients */
+.gradient-overlay {
+  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
+}
+
+.gradient-mask {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }
