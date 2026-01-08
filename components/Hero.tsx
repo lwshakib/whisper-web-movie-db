@@ -7,9 +7,10 @@ import 'swiper/css/effect-coverflow';
 import { EffectCoverflow, Autoplay } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
-import { imageOriginal, image500 } from '@/TMDB/config';
+import { imageOriginal, image500, fetchMovieVideos, fetchTVVideos } from '@/TMDB/config';
 import { Play, Info, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TrailerModal from './TrailerModal';
 
 interface Movie {
   id: number;
@@ -21,10 +22,14 @@ interface Movie {
   overview: string;
   release_date?: string;
   first_air_date?: string;
+  media_type?: string;
 }
 
 export default function Hero({ movies }: { movies: Movie[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [currentVideoKey, setCurrentVideoKey] = useState<string | null>(null);
+  const [loadingTrailer, setLoadingTrailer] = useState(false);
 
   // Filter valid movies
   const validMovies = movies.filter(movie => movie.poster_path && movie.backdrop_path).slice(0, 10);
@@ -32,6 +37,30 @@ export default function Hero({ movies }: { movies: Movie[] }) {
   if (!validMovies || validMovies.length === 0) return null;
 
   const activeMovie = validMovies[activeIndex];
+
+  const handleWatchTrailer = async () => {
+    setLoadingTrailer(true);
+    try {
+      // Determine if it's a TV show or Movie based on presence of 'name' or media_type
+      const isTV = !!activeMovie.name;
+      const data = isTV 
+        ? await fetchTVVideos(activeMovie.id)
+        : await fetchMovieVideos(activeMovie.id);
+      
+      const trailer = data.results?.find((v: any) => v.type === "Trailer" && v.site === "YouTube") || data.results?.[0];
+      
+      if (trailer) {
+        setCurrentVideoKey(trailer.key);
+        setIsTrailerOpen(true);
+      } else {
+        alert("Trailer not available for this title.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch trailer:", error);
+    } finally {
+      setLoadingTrailer(false);
+    }
+  };
 
   return (
     <section className="relative h-screen min-h-[750px] w-full overflow-hidden bg-black font-sans">
@@ -92,15 +121,16 @@ export default function Hero({ movies }: { movies: Movie[] }) {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-4">
-              <Link
-                href={`/movie/${activeMovie.id}`}
-                className="group flex items-center gap-3 bg-white text-black px-10 py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all hover:bg-primary hover:text-white transform hover:scale-105 shadow-xl"
+              <button
+                onClick={handleWatchTrailer}
+                disabled={loadingTrailer}
+                className="group flex items-center gap-3 bg-white text-black px-10 py-4 rounded-xl font-black text-sm uppercase tracking-wider transition-all hover:bg-primary hover:text-white transform hover:scale-105 shadow-xl disabled:opacity-50"
               >
-                <Play className="w-5 h-5 fill-current" />
-                Watch Now
-              </Link>
+                <Play className={cn("w-5 h-5 fill-current", loadingTrailer && "animate-pulse")} />
+                {loadingTrailer ? "Loading..." : "Watch Trailer"}
+              </button>
               <Link
-                href={`/movie/${activeMovie.id}`}
+                href={activeMovie.name ? `/tv/${activeMovie.id}` : `/movie/${activeMovie.id}`}
                 className="flex items-center gap-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all transform hover:scale-105 border border-white/10"
               >
                 <Info className="w-5 h-5" />
@@ -171,6 +201,17 @@ export default function Hero({ movies }: { movies: Movie[] }) {
 
       {/* Hero Bottom Shadow Overlay */}
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
+
+      {/* Trailer Modal */}
+      <TrailerModal 
+        isOpen={isTrailerOpen} 
+        onClose={() => setIsTrailerOpen(false)} 
+        videoKey={currentVideoKey} 
+      />
     </section>
   );
+}
+
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(" ");
 }

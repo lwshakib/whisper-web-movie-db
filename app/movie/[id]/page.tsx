@@ -2,22 +2,25 @@ import {
   fetchMovieDetails, 
   fetchMovieCredits, 
   fetchSimilarMovies,
+  fetchMovieVideos,
   imageOriginal,
   image500,
   fallbackMoviePoster
 } from "@/TMDB/config";
 import Image from "next/image";
-import { Star, Clock, Calendar, Play, List, Heart, Share2 } from "lucide-react";
+import { Star, Clock, Calendar, List, Heart, Share2 } from "lucide-react";
 import MovieRow from "@/components/MovieRow";
+import TrailerSection from "@/components/TrailerSection";
 import Link from "next/link";
 
 export default async function MovieDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
-  const [movie, credits, similar] = await Promise.all([
+  const [movie, credits, similar, videos] = await Promise.all([
     fetchMovieDetails(id),
     fetchMovieCredits(id),
-    fetchSimilarMovies(id)
+    fetchSimilarMovies(id),
+    fetchMovieVideos(id)
   ]);
 
   // Handle missing movie data
@@ -45,7 +48,7 @@ export default async function MovieDetails({ params }: { params: Promise<{ id: s
     : "Unknown";
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black pb-20">
       {/* Hero Backdrop */}
       <div className="relative h-[85vh] w-full overflow-hidden">
         {backdrop ? (
@@ -110,21 +113,17 @@ export default async function MovieDetails({ params }: { params: Promise<{ id: s
                 {movie.overview || "No overview available."}
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <button className="flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-bold transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-primary/30">
-                  <Play className="w-6 h-6 fill-white" />
-                  Watch Movie
-                </button>
-                <div className="flex items-center gap-3">
-                  <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors">
-                    <Heart className="w-6 h-6" />
-                  </div>
-                  <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors">
-                    <List className="w-6 h-6" />
-                  </div>
-                  <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors">
-                    <Share2 className="w-6 h-6" />
-                  </div>
+              <TrailerSection vs={videos?.results || []} />
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors group">
+                  <Heart className="w-6 h-6 group-hover:text-red-500 transition-colors" />
+                </div>
+                <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors group">
+                  <List className="w-6 h-6 group-hover:text-primary transition-colors" />
+                </div>
+                <div className="glass p-4 rounded-2xl hover:bg-white/10 cursor-pointer transition-colors group">
+                  <Share2 className="w-6 h-6 group-hover:text-blue-500 transition-colors" />
                 </div>
               </div>
             </div>
@@ -133,33 +132,38 @@ export default async function MovieDetails({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Main Content Sections */}
-      <div className="max-w-7xl mx-auto py-20 divide-y divide-white/5">
-        {credits?.cast && credits.cast.length > 0 && (
-          <section className="px-6 md:px-12 py-12">
-            <h2 className="text-white text-2xl font-bold mb-8">Top Cast</h2>
-            <div className="flex gap-6 overflow-x-auto pb-8 gradient-mask no-scrollbar">
-              {credits.cast.slice(0, 10).map((person: any) => (
-                <Link href={`/person/${person.id}`} key={person.id} className="flex-shrink-0 w-32 md:w-40 text-center space-y-3 group">
-                  <div className="relative aspect-square rounded-full overflow-hidden border-2 border-white/5 group-hover:border-primary transition-colors">
-                    {person.profile_path ? (
-                      <Image
-                        src={image500(person.profile_path)!}
-                        alt={person.name || "Cast member"}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-2xl font-bold">
-                        {person.name?.charAt(0) || "?"}
-                      </div>
-                    )}
-                  </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-primary line-clamp-1">{person.name}</h4>
-                  <p className="text-xs text-zinc-500 line-clamp-1">{person.character}</p>
-                </Link>
-              ))}
-            </div>
-          </section>
+      <div className="max-w-7xl mx-auto pt-20 divide-y divide-white/5">
+        <section className="px-6 md:px-12 py-12">
+          <h2 className="text-white text-2xl font-bold mb-8 uppercase tracking-tight flex items-center gap-3">
+            <span className="w-1.5 h-8 bg-primary rounded-full" />
+            Top Cast
+          </h2>
+          <div className="flex gap-6 overflow-x-auto pb-8 gradient-mask no-scrollbar">
+            {credits?.cast?.slice(0, 10).map((person: any) => (
+              <Link href={`/person/${person.id}`} key={person.id} className="flex-shrink-0 w-32 md:w-40 text-center space-y-3 group">
+                <div className="relative aspect-square rounded-full overflow-hidden border-2 border-white/5 group-hover:border-primary transition-colors">
+                  {person.profile_path ? (
+                    <Image
+                      src={image500(person.profile_path)!}
+                      alt={person.name || "Cast member"}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-2xl font-bold">
+                      {person.name?.charAt(0) || "?"}
+                    </div>
+                  )}
+                </div>
+                <h4 className="text-sm font-bold text-white group-hover:text-primary line-clamp-1">{person.name}</h4>
+                <p className="text-xs text-zinc-500 line-clamp-1">{person.character}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {videos?.results && videos.results.length > 0 && (
+          <TrailerSection galleryOnly vs={videos.results} />
         )}
 
         {similar?.results && similar.results.length > 0 && (
