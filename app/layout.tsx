@@ -16,22 +16,33 @@ const sourceSans3 = Source_Sans_3({
 export const metadata: Metadata = {
   title: "Whisper | Premium Movie Database",
   description: "Explore the latest movies and TV series with a premium cinematic experience.",
-  icons: {
+ icons: {
     icon: [
-      { url: "/favicon_io/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon_io/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon_io/favicon.ico" },
-    ],
-    apple: [
-      { url: "/favicon_io/apple-touch-icon.png" },
-    ],
-    other: [
       {
-        rel: "manifest",
-        url: "/favicon_io/site.webmanifest",
+        url: "/favicon_io/favicon-16x16.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/favicon_io/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      { url: "/favicon_io/favicon.ico", sizes: "any", type: "image/x-icon" },
+      {
+        url: "/favicon_io/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/favicon_io/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
+    apple: "/favicon_io/apple-touch-icon.png",
   },
+  manifest: "/favicon_io/site.webmanifest",
 };
 
 import { Suspense } from "react";
