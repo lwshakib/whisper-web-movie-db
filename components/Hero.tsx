@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/effect-coverflow';
-import { EffectCoverflow, Autoplay } from 'swiper/modules';
-import Image from 'next/image';
-import Link from 'next/link';
-import { imageOriginal, image500 } from '@/TMDB/config';
-import { Play, Info, Star, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import TrailerModal from './TrailerModal';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import { EffectCoverflow, Autoplay } from "swiper/modules";
+import Image from "next/image";
+import Link from "next/link";
+import { imageOriginal, image500 } from "@/TMDB/config";
+import { Play, Info, Star, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import TrailerModal from "./TrailerModal";
+import { cn } from "@/lib/utils";
 
+/**
+ * Represents a simplified Movie or TV show object for the Hero display
+ */
 interface Movie {
   id: number;
   title?: string;
@@ -26,6 +29,12 @@ interface Movie {
   media_type?: string;
 }
 
+/**
+ * Hero component for the landing page.
+ * Features a high-impact background transition, synchronized info panel,
+ * and a mini-slider for browsing upcoming/trending highlights.
+ * @param movies - Array of movie/TV data to display in the hero carousel
+ */
 export default function Hero({ movies }: { movies: Movie[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
@@ -33,32 +42,48 @@ export default function Hero({ movies }: { movies: Movie[] }) {
   const [loadingTrailer, setLoadingTrailer] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter valid movies
-  const validMovies = movies.filter(movie => movie.poster_path && movie.backdrop_path).slice(0, 10);
-  
-  if (!validMovies || validMovies.length === 0) return null;
+  /**
+   * Filter out any items that are missing essential visual assets
+   * and limit to the top 10 items for performance.
+   */
+  const validMovies = movies
+    .filter((movie) => movie.poster_path && movie.backdrop_path)
+    .slice(0, 10);
 
-  const activeMovie = validMovies[activeIndex];
+  const activeMovie = validMovies[activeIndex] || null;
 
-  // Reset error when movie changes
+  // Clear any existing trailer-specific error when the user switches to a different movie
   useEffect(() => {
     setError(null);
   }, [activeIndex]);
 
+  if (!validMovies || validMovies.length === 0) return null;
+
+  /**
+   * Fetches trailer data for the current active movie and opens the modal.
+   * Internal logic distinguishes between Movie and TV types to call correct API endpoint.
+   */
   const handleWatchTrailer = async () => {
     setLoadingTrailer(true);
     setError(null);
     try {
-      // Prioritize media_type if available, then fallback to name check
-      const isTV = activeMovie.media_type === 'tv' || (activeMovie.media_type !== 'movie' && !!activeMovie.name);
-      
-      const response = await fetch(`/api/videos?id=${activeMovie.id}&type=${isTV ? 'tv' : 'movie'}`);
+      // Determine if we are looking for a TV show or a Movie
+      const isTV =
+        activeMovie.media_type === "tv" ||
+        (activeMovie.media_type !== "movie" && !!activeMovie.name);
+
+      const response = await fetch(
+        `/api/videos?id=${activeMovie.id}&type=${isTV ? "tv" : "movie"}`
+      );
       const data = await response.json();
-      
-      const trailer = data.results?.find((v: any) => 
-        (v.type === "Trailer" || v.type === "Teaser") && v.site === "YouTube"
-      ) || data.results?.find((v: any) => v.site === "YouTube");
-      
+
+      // Find the best possible video: preferring YouTube Trailers or Teasers
+      const trailer =
+        data.results?.find(
+          (v: { type: string; site: string }) =>
+            (v.type === "Trailer" || v.type === "Teaser") && v.site === "YouTube"
+        ) || data.results?.find((v: { site: string }) => v.site === "YouTube");
+
       if (trailer) {
         setCurrentVideoKey(trailer.key);
         setIsTrailerOpen(true);
@@ -75,7 +100,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
 
   return (
     <section className="relative h-screen min-h-[750px] w-full overflow-hidden bg-black font-sans">
-      {/* Dynamic Background Image */}
+      {/* Background Layer: Animated backdrop transition with gradient overlays for text legibility */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeMovie.id}
@@ -97,9 +122,8 @@ export default function Hero({ movies }: { movies: Movie[] }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Main Content & Slider Wrapper */}
+      {/* Foreground Content: Movie Info & Action Buttons */}
       <div className="relative z-10 h-full w-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col pt-32 pb-12">
-        {/* Top Section: Movie Details */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl">
           <motion.div
             key={`content-${activeMovie.id}`}
@@ -108,6 +132,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="space-y-6"
           >
+            {/* Metadata Badges */}
             <div className="flex items-center gap-4">
               <span className="bg-primary px-3 py-1 rounded-md text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-lg shadow-primary/20">
                 {(activeMovie.media_type || (activeMovie.name ? "TV Show" : "Movie")).toUpperCase()}
@@ -126,11 +151,12 @@ export default function Hero({ movies }: { movies: Movie[] }) {
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-[0.9] uppercase drop-shadow-2xl">
               {activeMovie.title || activeMovie.name}
             </h1>
-            
+
             <p className="text-lg text-zinc-300 line-clamp-3 md:line-clamp-4 leading-relaxed max-w-xl font-medium">
               {activeMovie.overview}
             </p>
 
+            {/* Action Section */}
             <div className="relative group/btns pt-4">
               <div className="flex flex-wrap items-center gap-4">
                 <button
@@ -150,7 +176,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
                 </Link>
               </div>
 
-              {/* Status Message (Error) */}
+              {/* Error Feedback for Trailer Actions */}
               <AnimatePresence>
                 {error && (
                   <motion.div
@@ -168,19 +194,19 @@ export default function Hero({ movies }: { movies: Movie[] }) {
           </motion.div>
         </div>
 
-        {/* Bottom Section: Side-aligned Mini Slider */}
+        {/* Mini Preview Slider: used for quick navigation between the featured hero items */}
         <div className="mt-auto flex justify-end">
           <div className="w-full md:w-1/2 lg:w-[45%] xl:w-[40%] group/slider">
             <h3 className="text-white text-[10px] font-black uppercase tracking-[0.3em] mb-4 opacity-50 flex items-center gap-4">
               Up Next <span className="h-px bg-white/20 flex-1" />
             </h3>
-            
+
             <div className="relative">
               <Swiper
-                effect={'coverflow'}
+                effect={"coverflow"}
                 grabCursor={true}
                 centeredSlides={false}
-                slidesPerView={'auto'}
+                slidesPerView={"auto"}
                 spaceBetween={15}
                 loop={validMovies.length > 3}
                 autoplay={{
@@ -200,12 +226,12 @@ export default function Hero({ movies }: { movies: Movie[] }) {
               >
                 {validMovies.map((movie, index) => (
                   <SwiperSlide key={movie.id} className="!w-[110px] md:!w-[140px]">
-                    <div 
+                    <div
                       onClick={() => setActiveIndex(index)}
                       className={`relative aspect-[2/3] rounded-xl overflow-hidden cursor-pointer transition-all duration-500 border-2 ${
-                        activeIndex === index 
-                        ? 'border-primary ring-4 ring-primary/20 scale-105 shadow-2xl z-20' 
-                        : 'border-white/5 opacity-40 hover:opacity-100 grayscale hover:grayscale-0 scale-100 z-10'
+                        activeIndex === index
+                          ? "border-primary ring-4 ring-primary/20 scale-105 shadow-2xl z-20"
+                          : "border-white/5 opacity-40 hover:opacity-100 grayscale hover:grayscale-0 scale-100 z-10"
                       }`}
                     >
                       <Image
@@ -227,14 +253,14 @@ export default function Hero({ movies }: { movies: Movie[] }) {
         </div>
       </div>
 
-      {/* Hero Bottom Shadow Overlay */}
+      {/* Decorative shadow layer for content separation */}
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
 
-      {/* Trailer Modal */}
-      <TrailerModal 
-        isOpen={isTrailerOpen} 
-        onClose={() => setIsTrailerOpen(false)} 
-        videoKey={currentVideoKey} 
+      {/* External Player Modal */}
+      <TrailerModal
+        isOpen={isTrailerOpen}
+        onClose={() => setIsTrailerOpen(false)}
+        videoKey={currentVideoKey}
       />
     </section>
   );

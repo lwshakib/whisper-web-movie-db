@@ -24,7 +24,8 @@ export default function Error({
         OVAL <span className="text-primary italic">GLITCH</span>
       </h1>
       <p className="text-zinc-500 text-lg max-w-md mb-12">
-        Something went wrong while fetching the cinematic metadata. This might be due to a missing API key or network issues.
+        Something went wrong while fetching the cinematic metadata. This might be due to a missing
+        API key or network issues.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-4">
         <button

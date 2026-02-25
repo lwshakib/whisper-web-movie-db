@@ -11,10 +11,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const data = type === "tv" 
-      ? await fetchTVVideos(id) 
-      : await fetchMovieVideos(id);
-      
+    const data = type === "tv" ? await fetchTVVideos(id) : await fetchMovieVideos(id);
+
     return NextResponse.json(data);
   } catch (error) {
     console.error("API Proxy Error:", error);

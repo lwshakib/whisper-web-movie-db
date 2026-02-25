@@ -2,10 +2,7 @@ import { fetchTrendingMovies, fetchTrendingTV } from "@/TMDB/config";
 import MovieCard from "@/components/MovieCard";
 
 export default async function TrendingPage() {
-  const [movies, tv] = await Promise.all([
-    fetchTrendingMovies(),
-    fetchTrendingTV()
-  ]);
+  const [movies, tv] = await Promise.all([fetchTrendingMovies(), fetchTrendingTV()]);
 
   return (
     <div className="min-h-screen pt-32 pb-20 px-6 md:px-12 bg-black">
@@ -22,25 +19,45 @@ export default async function TrendingPage() {
         <div className="space-y-20">
           <section>
             <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-               <span className="w-1.5 h-6 bg-primary rounded-full" />
-               Movies
+              <span className="w-1.5 h-6 bg-primary rounded-full" />
+              Movies
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-              {movies.results?.map((movie: any) => (
-                <MovieCard key={movie.id} movie={movie} type="movie" />
-              ))}
+              {movies.results?.map(
+                (movie: {
+                  id: number;
+                  title?: string;
+                  name?: string;
+                  poster_path: string;
+                  vote_average: number;
+                  release_date?: string;
+                  first_air_date?: string;
+                }) => (
+                  <MovieCard key={movie.id} movie={movie} type="movie" />
+                )
+              )}
             </div>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-               <span className="w-1.5 h-6 bg-primary rounded-full" />
-               TV Series
+              <span className="w-1.5 h-6 bg-primary rounded-full" />
+              TV Series
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-              {tv.results?.map((show: any) => (
-                <MovieCard key={show.id} movie={show} type="tv" />
-              ))}
+              {tv.results?.map(
+                (show: {
+                  id: number;
+                  title?: string;
+                  name?: string;
+                  poster_path: string;
+                  vote_average: number;
+                  release_date?: string;
+                  first_air_date?: string;
+                }) => (
+                  <MovieCard key={show.id} movie={show} type="tv" />
+                )
+              )}
             </div>
           </section>
         </div>
@@ -48,4 +65,3 @@ export default async function TrendingPage() {
     </div>
   );
 }
-

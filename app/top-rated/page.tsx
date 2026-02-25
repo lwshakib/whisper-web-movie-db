@@ -17,12 +17,21 @@ export default async function TopRatedPage() {
         </header>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-          {data.results?.map((movie: any) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
+          {data.results?.map(
+            (movie: {
+              id: number;
+              title?: string;
+              name?: string;
+              poster_path: string;
+              vote_average: number;
+              release_date?: string;
+              first_air_date?: string;
+            }) => (
+              <MovieCard key={movie.id} movie={movie} />
+            )
+          )}
         </div>
       </div>
     </div>
   );
 }
-

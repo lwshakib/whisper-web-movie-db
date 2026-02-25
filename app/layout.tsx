@@ -16,7 +16,7 @@ const sourceSans3 = Source_Sans_3({
 export const metadata: Metadata = {
   title: "Whisper | Premium Movie Database",
   description: "Explore the latest movies and TV series with a premium cinematic experience.",
- icons: {
+  icons: {
     icon: [
       {
         url: "/favicon_io/favicon-16x16.png",
@@ -47,20 +47,34 @@ export const metadata: Metadata = {
 
 import { Suspense } from "react";
 
+/**
+ * Global Root Layout.
+ * Configures the base HTML structure, application fonts, SEO metadata,
+ * and universal UI components like the Navbar.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
+    /* 
+       Applying custom font variables to the root element allows us to 
+       use them consistently throughout the Tailwind theme.
+    */
     <html lang="en" className={`${outfit.variable} ${sourceSans3.variable}`}>
       <body className="bg-black text-white antialiased">
+        {/* 
+            Navbar is wrapped in Suspense to handle useSearchParams hook 
+            which requires client-side hydration context in Next.js.
+        */}
         <Suspense fallback={<div className="h-20 bg-transparent" />}>
           <Navbar />
         </Suspense>
+
+        {/* Main content area where individual pages will be rendered */}
         <main>{children}</main>
       </body>
     </html>
   );
 }
-

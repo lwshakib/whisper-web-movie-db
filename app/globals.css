@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: var(--font-outfit), var(--font-source-sans-3), ui-sans-serif, system-ui, sans-serif;
-  
+
   --color-primary: #e50914;
   --color-primary-hover: #b20710;
   --color-surface: #0f0f0f;
@@ -93,7 +93,12 @@ body {
 
 /* Gradients */
 .gradient-overlay {
-  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .gradient-mask {
@@ -110,8 +115,12 @@ body {
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-slow {

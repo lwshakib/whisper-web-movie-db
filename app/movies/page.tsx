@@ -6,13 +6,13 @@ export default async function MoviesPage() {
   const [trending, upcoming, topRated] = await Promise.all([
     fetchTrendingMovies(),
     fetchUpcomingMovies(),
-    fetchTopRatedMovies()
+    fetchTopRatedMovies(),
   ]);
 
   return (
     <div className="min-h-screen pb-20">
       <Hero movies={trending.results || []} />
-      
+
       <div className="max-w-7xl mx-auto space-y-12 mt-12">
         <MovieRow title="Trending Movies" movies={trending.results || []} />
         <MovieRow title="Upcoming Releases" movies={upcoming.results || []} />
@@ -21,4 +21,3 @@ export default async function MoviesPage() {
     </div>
   );
 }
-
