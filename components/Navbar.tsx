@@ -154,6 +154,7 @@ export default function Navbar() {
 
             <button
               onClick={toggleSearch}
+              aria-label="Toggle search"
               className={cn(
                 "p-2.5 transition-all rounded-full flex items-center justify-center",
                 searchActive

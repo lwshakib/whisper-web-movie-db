@@ -32,7 +32,11 @@ test.describe("Search Functionality", () => {
   test("can search for a movie", async ({ page }) => {
     await page.goto("/");
 
-    // Locate the dynamic search trigger and input
+    // The search input is dynamic; we must click the toggle first
+    const searchToggle = page.getByRole("button", { name: /toggle search/i });
+    await searchToggle.click();
+
+    // Now locate the input and fill it
     const searchInput = page.getByPlaceholder(/search\.\.\./i);
     await searchInput.fill("Inception");
     await searchInput.press("Enter");
